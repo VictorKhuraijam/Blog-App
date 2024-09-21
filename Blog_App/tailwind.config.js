@@ -1,7 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+import tailwindcssAnimate from 'tailwindcss-animate'
+
+export default {
   darkMode: ["class"],
   content: [
+    './index.html',
     './pages/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
     './app/**/*.{js,jsx}',
@@ -11,7 +14,12 @@ module.exports = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding:  {
+        DEFAULT: "2rem",
+        sm: "1rem",
+        lg: "4rem",
+        xl: "5rem",
+      },
       screens: {
         "2xl": "1400px",
       },
@@ -73,5 +81,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 }
