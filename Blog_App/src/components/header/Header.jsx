@@ -6,7 +6,9 @@ import { useEffect, useState } from 'react'
 import { getCurrentUserData } from '../../store/getCurrentUserData'
 
 function Header() {
-  const {userData, status} = useSelector((state) => state.auth)
+  const userData = useSelector((state) => state.auth.userData);
+  const status = useSelector((state) => state.auth.status);
+
 
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -14,7 +16,15 @@ function Header() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  console.log("userData:", userData);
+  console.log("status:", status);
+
   useEffect(() =>{
+    if (status === null || status === undefined) {
+      // Waiting for the status to be determined
+      setLoading(true);
+      return;
+    }
       if(!userData && status){
         dispatch(getCurrentUserData())
         .catch((err) => setError(`Failed to load user data: ${err.message}`))
@@ -77,7 +87,7 @@ function Header() {
                 <Link to={`/profile/${userData.$id}`}
                 className='flex-center gap-3'>
                   <img
-                  src={userData.imageUrl || 'assets/profile-placeholder.svg'}
+                  src={userData?.imageUrl || 'assets/profile-placeholder.svg'}
                   alt="profile"
                   className='h-8 w-8 rounded-full'
                   />

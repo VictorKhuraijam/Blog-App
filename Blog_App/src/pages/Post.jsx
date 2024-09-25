@@ -5,6 +5,7 @@ import { Button, Container } from "../components";
 import parse from "html-react-parser";
 import { useDispatch, useSelector } from "react-redux";
 import {fetchPostsStart, fetchPostsSuccess, fetchPostsFailure, deletePost as deletePostAction} from '../store/postSlice'
+import Comments from "../components/Comment";
 
 export default function Post() {
     const [post, setPost] = useState(null);
@@ -96,9 +97,9 @@ export default function Post() {
                 </div>
                 <div className="browser-css border rounded-xl">
                     {parse(post.content)}
-                    {console.log(post.content)}
-
                 </div>
+
+                <Comments postId={post.$id}/>
             </Container>
         </div>
     ) : null;
