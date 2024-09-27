@@ -2,7 +2,7 @@ import {useCallback, useEffect} from 'react'
 import {useForm} from 'react-hook-form'
 import {Button, Input, Select, RTE} from '../index'
 import appwriteService from '../../appwrite/config'
-import authService from '../../appwrite/auth'
+import authService   from '../../appwrite/auth'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
@@ -19,16 +19,20 @@ function PostForm({post}) {
 
   const navigate = useNavigate()
   const userData = useSelector(state => state.auth.userData)
-  console.log(userData)
+  console.log("UserData in the post component",userData)
 
   const submit = async (data) => {
    try {
 
 
       const slug = slugTransform(data.title, userData.$id);  // Generate slug
-
       console.log('Generated slug:', slug);    // Log the slug
 
+      const userDocumentId = await authService.getUserDocumentId(userData.$id);
+
+      if(!userDocumentId){
+        throw new Error("User document ID not found for the current user.")
+      }
 
       if(post) {
         const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
@@ -43,6 +47,7 @@ function PostForm({post}) {
             featuredImage: file ? file.$id : undefined,
             status: data.status,
             slug,
+
           })
 
           if(dbPost){
@@ -63,14 +68,14 @@ function PostForm({post}) {
               featuredImage: file.$id,
               status: data.status,
               slug,
-              creator: userData.$id,
+              creator: { $id: userDocumentId },
             }
             console.log("Submitting post data:", postData);
 
             const dbPost = await appwriteService.createPost(postData);
 
             if(dbPost){
-              
+
               navigate(`/post/${dbPost.$id}`)
             }
           }

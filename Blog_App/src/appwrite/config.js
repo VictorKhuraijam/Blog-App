@@ -18,6 +18,10 @@ export class Service{
 
       async createPost ({title,  content, featuredImage, status, creator, slug}) {
         try {
+          if (!creator || !creator.$id){
+            throw new Error("Invalid creator. Creator must be an object with a valid document ID.");
+          }
+          const creatorId = creator.$id
           console.log("Creating post with data:", {title, content, featuredImage, status, creator, slug});
 
               const response =  await this.databases.createDocument(
@@ -29,7 +33,7 @@ export class Service{
                 content,
                 featuredImage,
                 status,
-                creator,
+                creator: creatorId,
                 slug
               }
             );

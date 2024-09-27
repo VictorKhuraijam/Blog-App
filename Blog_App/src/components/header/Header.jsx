@@ -25,7 +25,7 @@ function Header() {
       setLoading(true);
       return;
     }
-      if(!userData && status){
+      if(status === true && !userData){
         dispatch(getCurrentUserData())
         .catch((err) => setError(`Failed to load user data: ${err.message}`))
         .finally(() => setLoading(false))
@@ -84,7 +84,7 @@ function Header() {
             </Link>
             ) : userData ? (
               <div>
-                <Link to={`/profile/${userData.$id}`}
+                <Link to={`/profile/${userData.userId}`}
                 className='flex-center gap-3'>
                   <img
                   src={userData?.imageUrl || 'assets/profile-placeholder.svg'}

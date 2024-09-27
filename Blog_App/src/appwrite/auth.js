@@ -145,7 +145,8 @@ export class AuthService {
               }
           } catch (error) {
               console.log("Error fetching user document ID:", error);
-              return null; // Handle error
+              throw new Error("Failed to fetch user document ID. Please try again later."); // Return a more user-friendly error message
+    
           }
       }
 
