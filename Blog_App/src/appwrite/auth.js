@@ -146,11 +146,10 @@ export class AuthService {
           } catch (error) {
               console.log("Error fetching user document ID:", error);
               throw new Error("Failed to fetch user document ID. Please try again later."); // Return a more user-friendly error message
-    
           }
       }
 
-      async getUserByDocumentId(id){
+        async getUserByDocumentId(id){
         try {
           console.log("Fetching user with document ID:", id);
           const user = await this.databases.getDocument(
@@ -158,6 +157,11 @@ export class AuthService {
             conf.appwriteUsersCollectionId,
             id
           );
+
+          if(!user){
+            console.log("No user found for the given document ID:", id)
+            return null
+          }
           return user
         } catch (error) {
           console.log("Error fetching user by document ID:", error)
@@ -214,52 +218,40 @@ export class AuthService {
           }
       }
 
-
-
-      async addComment(postId, userId, content) {
-        try {
-            // Fetch the user document ID using the userId
-            console.log("User ID being used to add comment:", userId);
-            const userDocumentId = await this.getUserDocumentId(userId);
-            console.log("User Document ID:", userDocumentId);
-            if (!userDocumentId) {
-                throw new Error(`User document not found for userId ${userId}.`);
-            }
-
-            // Fetch user details using the document ID
-            const user = await this.databases.getDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteUsersCollectionId,
-                userDocumentId // Use the document ID here
-            );
-            console.log("Fetchd User:", user)
-
-            const comment = await this.databases.createDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCommentCollectionId,
-                ID.unique(),
-                {
-                    postId,
-                    userId: userDocumentId,
-                    content,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    name: user.name,
-                    imageUrl: user.imageUrl
+         async addComment(postId, creator, content) {
+            try {
+                // Fetch the user document ID using the userId
+                console.log("User collection ID being used to add comment:", creator);
+                const user = await this.getUserByDocumentId(creator);
+                console.log("Fetched User:", user);
+                if (!user) {
+                    throw new Error(`User document not found for userId ${creator}.`);
                 }
-            );
-            console.log("Created Comment:", comment)
 
-            return comment;
-        } catch (error) {
-            console.log("Error adding comment:", error);
-            return null;
-        }
+                const comment = await this.databases.createDocument(
+                    conf.appwriteDatabaseId,
+                    conf.appwriteCommentCollectionId,
+                    ID.unique(),
+                    {
+                        postId,
+                        creator,
+                        content,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        name: user.name,
+                        imageUrl: user.imageUrl
+                    }
+                );
+                console.log("Created Comment:", comment)
+
+                return comment;
+            } catch (error) {
+                console.log("Error adding comment:", error);
+                return null;
+            }
     }
 
-
-
-          async deleteComment(commentId) {
+         async deleteComment(commentId) {
             try {
                 await this.databases.deleteDocument(
                     conf.appwriteDatabaseId,   // Database ID

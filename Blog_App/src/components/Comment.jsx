@@ -68,7 +68,7 @@ export default function Comments({ postId }) {
             {/* Display existing comments */}
             <div className="comments-list">
                 {Array.isArray(comments) && comments.length > 0 ? (
-                    comments.map((comment) => (
+                   comments.map((comment) => (
                         <div key={comment?.$id} className="comment-item p-2 border rounded-lg mb-2">
                             <div className="flex items-center mb-2">
                                 <img
@@ -84,6 +84,7 @@ export default function Comments({ postId }) {
                                 </div>
                             </div>
                             <p>{comment?.content}</p>
+                            
                             {userData.userId === comment?.userId && (  // Show delete button only for the comment owner
                                 <button
                                     onClick={() => handleDelete(comment.$id)}

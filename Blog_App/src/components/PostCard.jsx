@@ -15,7 +15,7 @@ function PostCard({
       if (creator) {
         console.log("Fetching user for ID:", creator);
         try {
-          const user = await authService.getUser(creator);
+          const user = await authService.getUserByDocumentId(creator.$id);
           console.log("Fetched user:", user);
           if (!user) {
             console.error("User not found");

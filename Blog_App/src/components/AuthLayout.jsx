@@ -6,8 +6,9 @@ import {useNavigate} from 'react-router-dom'
 export default function Protected({children, authentication = true}) {
 
   const navigate = useNavigate()
-  const [loader, setLoader] = useState(true)
+  const [loading, setLoading] = useState(true)
   const authStatus = useSelector((state) => state.auth.status)
+  console.log("Auth Status in Protected:", authStatus)
 
   useEffect(() => {
 
@@ -16,15 +17,19 @@ export default function Protected({children, authentication = true}) {
     // } else if(authStatus === false){
     //   navigate("/login")
     // }
-
-    if(authentication && authStatus !== authentication){
-          navigate("/login")
-      } else if(!authentication && authStatus !== authentication) {
-          navigate("/")
+    const checkAuth = () => {
+      // If authentication is required and the user is not authenticated, redirect to login
+      if (authentication && authStatus !== authentication) {
+        navigate("/login");
+      } else if (!authentication && authStatus !== authentication) {
+        navigate("/");
       }
-      setLoader(false)
+      setLoading(false);
+    };
+
+    checkAuth();
   }, [authStatus, navigate, authentication])
 
 
-  return loader ? <h1>loading...</h1> : <> {children} </>
+  return loading ? <h1>loading...</h1> : <> {children} </>
 }

@@ -11,7 +11,6 @@ export const getCurrentUserData = () => async(dispatch) => {
         console.log("Serialized User Data:", userDoc);
         if(userDoc){
           dispatch(fetchUserData({userData: userDoc}))
-
         }
       }
 

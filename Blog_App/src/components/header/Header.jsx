@@ -25,7 +25,7 @@ function Header() {
       setLoading(true);
       return;
     }
-      if(status === true && !userData){
+      if(status && !userData){
         dispatch(getCurrentUserData())
         .catch((err) => setError(`Failed to load user data: ${err.message}`))
         .finally(() => setLoading(false))

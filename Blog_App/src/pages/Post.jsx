@@ -23,7 +23,7 @@ export default function Post() {
             dispatch(fetchPostsStart());
             try {
                 const fetchedPost = await appwriteService.getPost(id);
-
+                console.log("post:",fetchedPost)
                 if(fetchedPost){
                     setPost(fetchedPost);
                     dispatch(fetchPostsSuccess({posts: [fetchedPost]}));
@@ -41,10 +41,10 @@ export default function Post() {
     fetchPost();
     }, [id, navigate, dispatch]);
 
-    const isAuthor = post && userData ? (post.creator  === userData.$id) : null;
+    const isAuthor = post && userData ? (post.creator.$id  === userData.$id) : null;
 
-    console.log(userData?.$id)
-    console.log(post)
+    console.log("userData.$id:",userData?.$id)
+
 
     const deletePost = async () => {
        try {
