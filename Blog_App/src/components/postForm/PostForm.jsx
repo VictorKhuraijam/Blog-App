@@ -2,7 +2,6 @@ import {useCallback, useEffect} from 'react'
 import {useForm} from 'react-hook-form'
 import {Button, Input, Select, RTE} from '../index'
 import appwriteService from '../../appwrite/config'
-import authService   from '../../appwrite/auth'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
@@ -28,7 +27,7 @@ function PostForm({post}) {
       const slug = slugTransform(data.title, userData.$id);  // Generate slug
       console.log('Generated slug:', slug);    // Log the slug
 
-      const userDocumentId = await authService.getUserDocumentId(userData.$id);
+      const userDocumentId = userData.$id;
 
       if(!userDocumentId){
         throw new Error("User document ID not found for the current user.")

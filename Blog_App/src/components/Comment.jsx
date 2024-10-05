@@ -10,12 +10,17 @@ import {
     addCommentFailure,
     deleteCommentStart,
     deleteCommentSuccess,
-    deleteCommentFailure
+    deleteCommentFailure,
+    editCommentStart,
+    editCommentSuccess,
+    editCommentFailure
 } from "../store/commentSlice";
 
 
 export default function Comments({ postId }) {
     const [newComment, setNewComment] = useState("");
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [editedCommentContent, setEditedCommentContent] = useState("");
     const { comments, loading, error } = useSelector(state => state.comments);
     const userData = useSelector(state => state.auth.userData);
     const dispatch = useDispatch();
@@ -59,39 +64,116 @@ export default function Comments({ postId }) {
         }
     };
 
+    const handleEditToggle = (commentId, currentContent) => {
+        setEditingCommentId(commentId); // Enter edit mode
+        setEditedCommentContent(currentContent)  // Set the current content to be edited
+    };
+
+    const handleEditSubmit = async (commentId) => {
+        if(!editedCommentContent.trim()) return;
+
+        dispatch(editCommentStart());
+        try {
+            const updatedComment = await appwriteService.updateComment(commentId, editedCommentContent);
+            dispatch(editCommentSuccess(updatedComment));
+
+            // Update the local comments state immediately
+            const updatedComments = comments.map((comment) =>
+                comment.$id === commentId
+                    ? { ...comment, content: editedCommentContent, updatedAt: new Date().toISOString() }  // Update the content and timestamp
+                    : comment
+            );
+            // Dispatch an action to update the state with the modified comments
+            dispatch(fetchCommentsSuccess(updatedComments));
+
+            setEditingCommentId(null); //Exit edit mode
+        } catch (error) {
+            dispatch(editCommentFailure(error.message));
+            console.log("Failed to update comment:", error);
+        }
+    };
+
+    const formatDate = (createdAt, updatedAt) => {
+        const createdTime = new Date(createdAt).toLocaleString();
+
+        if (updatedAt && new Date(updatedAt).getTime() > new Date(createdAt).getTime()) {
+            const updatedTime = new Date(updatedAt).toLocaleString();
+            return `Updated at: ${updatedTime}`;
+        }
+
+        return `Posted at: ${createdTime}`;
+    };
+
+
     return (
-        <div className="comments-section">
+        <div className="max-w-4xl mx-auto p-4">
             <h2 className="text-xl font-bold">Comments</h2>
             {loading && <p>Loading comments...</p>}
             {error && <p>Error: {error}</p>}
 
             {/* Display existing comments */}
-            <div className="comments-list">
+            <div className="space-y-4">
                 {Array.isArray(comments) && comments.length > 0 ? (
                    comments.map((comment) => (
-                        <div key={comment?.$id} className="comment-item p-2 border rounded-lg mb-2">
-                            <div className="flex items-center mb-2">
-                                <img
-                                    src={comment?.imageUrl || 'assets/profile-placeholder.svg'}
-                                    alt="User Avatar"
-                                    className="h-8 w-8 rounded-full mr-3"
-                                />
-                                <div>
-                                    <p className="font-semibold">{comment?.name}</p>
-                                    <p className="text-gray-500 text-sm">
-                                    {new Date(comment?.createdAt).toLocaleString()}
-                                    </p>
+                        <div key={comment?.$id} className="p-4 bg-white border border-gray-300 shadow rounded-lg space-y-2">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center">
+                                    <img
+                                        src={comment?.imageUrl || 'assets/profile-placeholder.svg'}
+                                        alt="User Avatar"
+                                        className="h-8 w-8 rounded-full mr-3"
+                                    />
+                                    <div>
+                                        <p className="font-semibold">{comment?.name}</p>
+                                        <p className="text-gray-500 text-sm">
+                                        {formatDate(comment?.createdAt, comment?.updatedAt)}
+
+                                        </p>
+                                    </div>
                                 </div>
+                                {/* Buttons aligned on the top-right */}
+                                {userData?.$id === comment?.creator.$id && (
+                                    <div className="flex space-x-2 ml-auto">
+                                        <button
+                                            onClick={() => handleEditToggle(comment.$id, comment.content)}
+                                            className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(comment.$id)}
+                                            className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <p>{comment?.content}</p>
-                            
-                            {userData.userId === comment?.userId && (  // Show delete button only for the comment owner
+
+                            {editingCommentId === comment?.$id ? (
+                                // If editing, show textarea with buttons
+                                <>
+                                <textarea
+                                    value={editedCommentContent}
+                                    onChange={(e) => setEditedCommentContent(e.target.value)}
+                                    className="w-full border rounded-lg p-2"
+                                />
                                 <button
-                                    onClick={() => handleDelete(comment.$id)}
-                                    className="text-red-500 text-sm mt-2"
+                                    onClick={() => handleEditSubmit(comment.$id)}
+                                    className="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg"
                                 >
-                                    Delete
+                                    Save
                                 </button>
+                                <button
+                                    onClick={() => setEditingCommentId(null)}
+                                    className="mt-2 ml-2 bg-gray-500 text-white px-4 py-2 rounded-lg"
+                                >
+                                    Cancel
+                                </button>
+                                </>
+                            ) : (
+                                // Show the comment content normally
+                                <p className="mt-2">{comment?.content}</p>
                             )}
                         </div>
                     ))

@@ -184,9 +184,9 @@ export class AuthService {
                   response.documents.map(async (comment) => {
                       try {
                           // Fetch user details by document ID (userId in the comment)
-                          console.log('comment.userId:', comment.userId);
+                          console.log('comment:', comment);
 
-                          const user = await this.getUserByDocumentId(comment.userId.$id);
+                          const user = await this.getUserByDocumentId(comment.creator.$id);
                           if (!user) {
                               console.log("User not found for comment:", comment);
                               return {
@@ -249,7 +249,40 @@ export class AuthService {
                 console.log("Error adding comment:", error);
                 return null;
             }
-    }
+        }
+
+          async updateComment(commentId, newContent) {
+            try {
+                // Fetch the current comment by its ID
+                const comment = await this.databases.getDocument(
+                    conf.appwriteDatabaseId,   // Database ID
+                    conf.appwriteCommentCollectionId,  // Comments collection ID
+                    commentId   // The unique ID of the comment to be updated
+                );
+
+                if (!comment) {
+                    throw new Error(`Comment with ID ${commentId} not found.`);
+                }
+
+                // Update the comment's content and updatedAt fields
+                const updatedComment = await this.databases.updateDocument(
+                    conf.appwriteDatabaseId,
+                    conf.appwriteCommentCollectionId,
+                    commentId,
+                    {
+                        content: newContent,
+                        updatedAt: new Date().toISOString() // Update the timestamp
+                    }
+                );
+
+                console.log("Comment updated successfully:", updatedComment);
+                return updatedComment;
+            } catch (error) {
+                console.log("Error updating comment:", error);
+                return null;
+            }
+        }
+
 
          async deleteComment(commentId) {
             try {
@@ -265,6 +298,78 @@ export class AuthService {
                 return false;
             }
         }
+
+        //like and save functionality
+                // ============================== LIKE POST
+          async likePost(postId, likesArray) {
+            try {
+              const updatedPost = await this.databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwritePostCollectionId,
+                postId,
+                { likes: likesArray }
+              );
+
+              if (!updatedPost) throw new Error("Failed to like the post");
+
+              return updatedPost;
+            } catch (error) {
+              console.error("Error liking post:", error);
+            }
+          }
+          // ============================== SAVE POST
+          async savePost(userId, postId) {
+            try {
+              // Check if this post is already saved by the user
+              const existingSave = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteSavesCollectionId,
+                [
+                  Query.equal("user", userId),
+                  Query.equal("post", postId),
+                ]
+              );
+
+              // If a save record exists, return the existing record without creating a new one
+              if (existingSave.total > 0) {
+                return existingSave.documents[0];  // Return the existing save record
+              }
+
+              // If no existing save record, create a new one
+              const savedPost = await this.databases.createDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteSavesCollectionId,
+                ID.unique(),
+                { user: userId, post: postId }
+              );
+
+              if (!savedPost) throw new Error("Failed to save the post");
+
+              return savedPost;
+            } catch (error) {
+              console.error("Error saving post:", error);
+              throw error; // Rethrow to allow error handling elsewhere
+            }
+          }
+
+
+          // ============================== DELETE SAVED POST
+          async deleteSavedPost(savedId) {
+            try {
+              const status = await this.databases.deleteDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteSavesCollectionId,
+                savedId
+              );
+
+              if (!status) throw new Error("Failed to delete saved post");
+
+              return { status: "Ok" };
+            } catch (error) {
+              console.error("Error deleting saved post:", error);
+            }
+          }
+
 
   }
 

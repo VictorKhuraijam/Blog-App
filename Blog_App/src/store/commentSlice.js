@@ -50,6 +50,23 @@ import { createSlice } from '@reduxjs/toolkit';
                     state.loading = false;
                     state.error = action.payload;
                   },
+                   // New actions for editing a comment
+                  editCommentStart: (state) => {
+                    state.loading = true;
+                    state.error = null;
+                  },
+                  editCommentSuccess: (state, action) => {
+                    state.loading = false;
+                    const { $id, content } = action.payload;
+                    const existingComment = state.comments.find((comment) => comment.$id === $id);
+                    if (existingComment) {
+                      existingComment.content = content; // Update the comment content
+                    }
+                  },
+                  editCommentFailure: (state, action) => {
+                    state.loading = false;
+                    state.error = action.payload;
+                  },
           },
         });
 
@@ -64,6 +81,9 @@ export const {
   deleteCommentStart,
   deleteCommentSuccess,
   deleteCommentFailure,
+  editCommentStart,
+  editCommentSuccess,
+  editCommentFailure
 } = commentSlice.actions;
 
 export default commentSlice.reducer;
