@@ -62,7 +62,7 @@ function PostCard({
              {userId ? ( // Check if the user is authenticated
               <Link to={`/profile/${creator.$id}`}>
                 <img
-                  src={creator?.imageUrl || "../assets/profile-placeholder.svg"}
+                  src={creator?.imageId || "../assets/profile-placeholder.svg"}
                   alt="user picture"
                   className='rounded-full w-12 lg:h12'
                 />

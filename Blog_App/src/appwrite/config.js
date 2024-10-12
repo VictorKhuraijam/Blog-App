@@ -1,4 +1,4 @@
- import conf from '../conf/conf.js'
+import conf from '../conf/conf.js'
 import { Client, Databases, ID, Storage, Query } from 'appwrite'
 
 export class Service{
@@ -136,11 +136,96 @@ export class Service{
     }
 
     getFilePreview(fileId) {
-      return this.bucket.getFilePreview(
-        conf.appwriteBucketId,
-        fileId
-      )
+      try {
+          return this.bucket.getFilePreview(
+              conf.appwriteBucketId,
+              fileId
+          );
+      } catch (error) {
+          console.error("Appwrite service :: getFilePreview :: error", error);
+          return null; // Return a fallback or handle the error as needed
+      }
+  }
+
+    async getPostsByUser(userId) {
+      try {
+          // Step 1: Fetch the user document by userId (Appwrite's user ID)
+          const userDoc = await this.databases.listDocuments(
+              conf.appwriteDatabaseId,
+              conf.appwriteUsersCollectionId,
+              [Query.equal('userId', userId)] // Query the 'users' collection using the Appwrite user ID
+          );
+
+          // Ensure the user document exists
+          if (userDoc.documents.length === 0) {
+              console.log("User document not found for userId:", userId);
+              return [];
+          }
+
+          const userCollectionDocId = userDoc.documents[0].$id; // Get the document ID from the users collection
+
+          // Step 2: Query the posts by the user collection document ID (creator)
+          const posts = await this.databases.listDocuments(
+              conf.appwriteDatabaseId,
+              conf.appwritePostCollectionId,
+              [Query.equal('creator', userCollectionDocId)] // Use the correct document ID from users collection
+          );
+
+          // Return the list of posts
+          if (posts.documents.length > 0) {
+              return posts.documents;
+          } else {
+              console.log("No posts found for user:", userCollectionDocId);
+              return [];
+          }
+      } catch (error) {
+          console.log("Appwrite service :: getPostsByUser :: error", error);
+          throw new Error("Failed to fetch posts for the user");
+      }
     }
+
+           // Upload profile picture to a different bucket (profile pictures bucket)
+           async uploadProfilePicture(file) {
+            try {
+                return await this.bucket.createFile(
+                    conf.appwriteProfileBucketId, // Using the profile bucket ID from conf
+                    ID.unique(),
+                    file
+                );
+            } catch (error) {
+                console.log("Appwrite service :: uploadProfilePicture :: error", error);
+                return false;
+            }
+        }
+
+            // Delete profile picture
+            async deleteProfilePicture(fileId) {
+              
+
+              try {
+                    await this.bucket.deleteFile(
+                      conf.appwriteProfileBucketId,
+                      fileId
+                    );
+                    return true;
+                } catch (error) {
+                    console.log("Appwrite service :: deleteProfilePicture :: error", error);
+                    return false;
+                }
+            }
+
+            // Get the URL for a profile picture
+            getProfilePicturePreview(fileId) {
+              try {
+                  return this.bucket.getFilePreview(
+                      conf.appwriteProfileBucketId,
+                      fileId
+                  );
+              } catch (error) {
+                  console.error("Appwrite service :: getProfilePicturePreview :: error", error);
+                  return null; // Return a fallback or handle the error as needed
+              }
+          }
 }
 
 

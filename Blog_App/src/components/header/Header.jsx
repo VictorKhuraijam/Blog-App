@@ -52,6 +52,11 @@ function Header() {
       active: !status,
     },
     {
+      name: "Profile",
+      slug: status && userData ? `/profile/${userData.$id}` : null,
+      active: status && userData !== null,
+    },
+    {
       name: "All Posts",
       slug: "/all-posts",
       active: status,

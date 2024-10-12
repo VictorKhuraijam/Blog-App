@@ -7,7 +7,7 @@ import store, {persistor} from "./store/store.js"
 import { PersistGate } from 'redux-persist/integration/react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { AuthLayout, Login } from './components/index.js'
-import {Home, AllPost, AddPost, EditPost, Post, Signup} from './pages/index.js'
+import {Home, AllPost, AddPost, EditPost, Post, Signup, Profile} from './pages/index.js'
 
 
 const router = createBrowserRouter([
@@ -32,6 +32,15 @@ const router = createBrowserRouter([
       element:(
         <AuthLayout authentication={false}>
           <Signup />
+        </AuthLayout>
+      )
+    },
+    {
+      path:'/profile/:id',
+      element:(
+        <AuthLayout authentication>
+          {" "}
+          <Profile />
         </AuthLayout>
       )
     },

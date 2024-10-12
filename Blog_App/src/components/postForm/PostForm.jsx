@@ -22,8 +22,6 @@ function PostForm({post}) {
 
   const submit = async (data) => {
    try {
-
-
       const slug = slugTransform(data.title, userData.$id);  // Generate slug
       console.log('Generated slug:', slug);    // Log the slug
 

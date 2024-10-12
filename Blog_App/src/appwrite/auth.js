@@ -1,4 +1,5 @@
 import conf from '../conf/conf.js'
+import appwriteService from './config.js'
 import { Client, Account, ID, Avatars, Databases, Query} from 'appwrite'
 
 
@@ -168,6 +169,24 @@ export class AuthService {
           return null;
         }
       }
+
+      async updateUserProfile(id, updatedProfileData) {
+        try {
+            // Assuming you store the profile data in the 'users' collection
+            const response = await this.databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteUsersCollectionId,
+                id,  // The user document ID from your custom user collection
+                updatedProfileData
+            );
+            console.log("User profile updated successfully", response);
+            return response;
+        } catch (error) {
+            console.log("Appwrite service :: updateUserProfile :: error", error);
+            throw new Error("Failed to update user profile");
+        }
+    }
+
 
         // Comment collection
 
@@ -369,6 +388,16 @@ export class AuthService {
               console.error("Error deleting saved post:", error);
             }
           }
+
+          async getUserPosts(userId) {
+            try {
+                const posts = await appwriteService.getPostsByUser(userId);
+                return posts;
+            } catch (error) {
+                console.log("Error fetching posts for user:", error);
+                return [];
+            }
+        }
 
 
   }

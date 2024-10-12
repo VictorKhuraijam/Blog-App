@@ -4,6 +4,7 @@ import postSlice from "./postSlice";
 import commentSlice from "./commentSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import userSlice from "./userSlice";
 
 
 const persistConfig = {
@@ -18,7 +19,8 @@ const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
     posts: postSlice,
-    comments: commentSlice
+    comments: commentSlice,
+    user: userSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
