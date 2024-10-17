@@ -46,7 +46,7 @@ function AllPost() {
                 key={post.$id}
                 className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
             >
-                <PostCard {...post}/>
+                <PostCard post={post}/>
             </div>
 
           ))}

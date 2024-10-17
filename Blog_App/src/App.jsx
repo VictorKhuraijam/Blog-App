@@ -13,7 +13,7 @@ function App() {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        dispatch(getCurrentUserData()); // Dispatch your new function to fetch user data
+     await dispatch(getCurrentUserData()); // Dispatch your new function to fetch user data
       } catch (error) {
         console.error('Failed to fetch user data:', error);
       } finally {

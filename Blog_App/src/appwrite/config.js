@@ -200,7 +200,7 @@ export class Service{
 
             // Delete profile picture
             async deleteProfilePicture(fileId) {
-              
+
 
               try {
                     await this.bucket.deleteFile(
@@ -226,6 +226,56 @@ export class Service{
                   return null; // Return a fallback or handle the error as needed
               }
           }
+
+          // Saved collection
+
+          async getSavedPostsByUser(userId) {
+            try {
+                // Step 1: Query the saved collection for entries with the user's document ID
+                const savedPosts = await this.databases.listDocuments(
+                    conf.appwriteDatabaseId,
+                    conf.appwriteSavesCollectionId,
+                    [
+                        Query.equal('user', userId)
+                    ] // Query using the 'user' field directly
+                );
+
+                // Step 2: If there are saved posts, fetch each post's details using Promise.all
+                if (savedPosts.documents.length > 0) {
+                    const posts = await Promise.all(
+                        savedPosts.documents.map(async (savedPost) => {
+                            try {
+                                const postId = savedPost.post.$id;
+                                // Fetch the post details by its ID
+                                const post = await this.databases.getDocument(
+                                    conf.appwriteDatabaseId,
+                                    conf.appwritePostCollectionId,
+                                    postId
+                                );
+                                return {
+                                    $id: savedPost.$id,
+                                    user: savedPost.user,
+                                    post // This contains the full post document
+                                };
+                            } catch (error) {
+                                console.log(`Failed to fetch post with ID: ${savedPost.post}`, error);
+                                return null; // Handle the case where a post might be missing
+                            }
+                        })
+                    );
+
+                    // Step 3: Filter out any null results (in case some posts were not found)
+                    return posts.filter(post => post !== null);
+                } else {
+                    console.log("No saved posts found for user:", userId);
+                    return [];
+                }
+            } catch (error) {
+                console.log("Appwrite service :: getSavedPostsByUser :: error", error);
+                throw new Error("Failed to fetch saved posts for the user");
+            }
+        }
+
 }
 
 

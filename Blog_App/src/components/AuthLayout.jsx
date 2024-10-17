@@ -8,7 +8,10 @@ export default function Protected({children, authentication = true}) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const authStatus = useSelector((state) => state.auth.status)
+  const isRehydrated = useSelector((state) => state.auth._persist?.rehydrated);
+
   console.log("Auth Status in Protected:", authStatus)
+  console.log("Is Rehydrated: ", isRehydrated);
 
   useEffect(() => {
 
@@ -18,17 +21,20 @@ export default function Protected({children, authentication = true}) {
     //   navigate("/login")
     // }
     const checkAuth = () => {
-      // If authentication is required and the user is not authenticated, redirect to login
-      if (authentication && authStatus !== authentication) {
-        navigate("/login");
-      } else if (!authentication && authStatus !== authentication) {
-        navigate("/");
+      // Ensure that rehydration is complete before checking auth status
+      if(isRehydrated){
+        // If authentication is required and the user is not authenticated, redirect to login
+        if (authentication && authStatus !== authentication) {
+          navigate("/login");
+        } else if (!authentication && authStatus !== authentication) {
+          navigate("/");
+        }
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkAuth();
-  }, [authStatus, navigate, authentication])
+  }, [authStatus, navigate, authentication, isRehydrated])
 
 
   return loading ? <h1>loading...</h1> : <> {children} </>

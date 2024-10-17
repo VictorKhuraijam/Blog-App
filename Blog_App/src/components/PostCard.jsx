@@ -7,21 +7,19 @@ import PostStats from './PostStats';
 import { getCurrentUserData } from '../store/getCurrentUserData'
 
 
-function PostCard({
-  $id, title, featuredImage, creator, $createdAt, likes
-}) {
+function PostCard({ post, onSaveToggle, isSavedPostView}) {
 
   const [author, setAuthor] = useState(null);
   const {userId} = getCurrentUserData();
 
-  console.log($createdAt);
+  const postData = isSavedPostView ? post.post : post;
 
   useEffect(() => {
     const fetchAuthor = async () => {
-      if (creator) {
-        console.log("Fetching user for ID:", creator);
+      if (post?.creator) {
+        console.log("Fetching user for ID:", post.creator);
         try {
-          const user = await authService.getUserByDocumentId(creator.$id);
+          const user = await authService.getUserByDocumentId(post.creator.$id);
           console.log("Fetched user:", user);
           if (!user) {
             console.error("User not found");
@@ -34,7 +32,12 @@ function PostCard({
       }
     };
     fetchAuthor();
-  }, [creator]);
+  }, [post?.creator]);
+
+  if(!postData) return null;
+
+  const {$id, title, featuredImage, creator, $createdAt, likes, save} = postData;
+
 
   return (
     <div className="w-full bg-gray-100 rounded-lg p-4 transition-shadow hover:shadow-md">
@@ -83,7 +86,13 @@ function PostCard({
       </div>
 
       {/* PostStats section */}
-      <PostStats post={{$id, likes}} creator={creator} />
+      <PostStats
+        post={postData}
+        creator={creator}
+        savedPostId={isSavedPostView ? post.$id : null}
+        onSaveToggle={onSaveToggle}
+        isSavedPostView={isSavedPostView}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import appwriteService from '../../appwrite/config'
 import { getCurrentUserData } from '../../store/getCurrentUserData'
 
 function Header() {
@@ -25,7 +26,7 @@ function Header() {
       setLoading(true);
       return;
     }
-      if(status && !userData){
+      if(status && !userData ){
         dispatch(getCurrentUserData())
         .catch((err) => setError(`Failed to load user data: ${err.message}`))
         .finally(() => setLoading(false))
@@ -33,7 +34,7 @@ function Header() {
         setLoading(false);
       }
       console.log(userData)
-  },[dispatch, userData, status])
+  },[dispatch, userData, status, loading])
 
   const navItems = [
     {
@@ -89,12 +90,12 @@ function Header() {
             </Link>
             ) : userData ? (
               <div>
-                <Link to={`/profile/${userData.userId}`}
+                <Link to={`/profile/${userData.$id}`}
                 className='flex-center gap-3'>
                   <img
-                  src={userData?.imageUrl || 'assets/profile-placeholder.svg'}
+                  src={userData?.imageId ? appwriteService.getProfilePicturePreview(userData.imageId) : userData?.imageUrl }
                   alt="profile"
-                  className='h-8 w-8 rounded-full'
+                  className='h-10 w-10 rounded-full'
                   />
                 </Link>
             </div>

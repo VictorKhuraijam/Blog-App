@@ -16,5 +16,6 @@ export const getCurrentUserData = () => async(dispatch) => {
 
   } catch (error) {
     console.log("Error fetching current user data:",error)
+    throw error;
   }
 }

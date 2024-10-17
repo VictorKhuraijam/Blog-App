@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Container, PostCard } from '../components';
@@ -11,6 +11,8 @@ function Profile() {
   const dispatch = useDispatch();
   const { user, loading, error } = useSelector(state => state.user);
   const [posts, setPosts] = useState([]);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [activeTab, setActiveTab] = useState('posts');
   const [isEditing, setIsEditing] = useState(false);
   const [isManagingImage, setIsManagingImage] = useState(false);
   const [updatedUser, setUpdatedUser] = useState({
@@ -29,6 +31,15 @@ function Profile() {
   console.log("userID or Document ID:", id)
   console.log("user details:", user)
 
+  const fetchSavedPosts = useCallback(async () => {
+    try {
+      const posts = await appwriteService.getSavedPostsByUser(id);
+      setSavedPosts(posts);
+      console.log("Saved post response:", posts)
+    } catch (error) {
+      console.log("Error fetching saved post:", error);
+    }
+  },[id])
 
   useEffect(() => {
     if (!id) {
@@ -53,15 +64,23 @@ function Profile() {
 
             // Fetch posts using the userId from userResponse
             const postsResponse = await appwriteService.getPostsByUser(userResponse.userId);
+            console.log("The post response",postsResponse)
             setPosts(Array.isArray(postsResponse) ? postsResponse : []);
             dispatch(fetchUserSuccess({ user: userResponse }));
+
+            //Fetch saved post if the active tab is 'saved'
+            if(activeTab === 'saved'){
+              await fetchSavedPosts()
+            }
           } catch (error) {
             dispatch(fetchUserFailure({ error: error.message }));
           }
         };
 
     fetchUserProfile();
-  }, [dispatch, id]);
+  }, [dispatch, id, fetchSavedPosts]);
+
+
 
   const handleInputChange = (e) => {
     const {name, value} = e.target;
@@ -112,6 +131,13 @@ function Profile() {
     }
   };
 
+  const handleSaveToggle = async(postId, isSaved, savedPostDocId) => {
+    if(!isSaved){
+      // Remove the post from SavedPosts using the saved post document ID
+      const newUpdatedPost = prevSavedPosts => prevSavedPosts.filter(post => post.$id !== savedPostDocId)
+      setSavedPosts(newUpdatedPost);
+    }
+  }
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
@@ -170,7 +196,14 @@ function Profile() {
         } finally {
           setIsSubmitting(false);
         }
-  }
+  };
+
+
+
+  const handleTabClick = (tab) => {
+    console.log(`Switching to ${tab} tab`); // Debugging statement
+    setActiveTab(tab);
+  };
 
   if (loading) return <div>Loading user profile...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -296,28 +329,65 @@ function Profile() {
           <h2 className="text-2xl font-bold">Posts by {user?.name}</h2>
         </div>
       </div>
-      
-      <div className="flex flex-wrap justify-center mb-4">
-            {posts.length === 0 ? (
+
+      <div className="flex justify-center mt-8 gap-2">
+           <button
+            className={`px-4 py-2 ${activeTab === 'posts' ?'bg-blue-500 text-white' : 'bg-gray-300 text-black' }`}
+            onClick={() => handleTabClick('posts')}
+           >
+              User Posts
+           </button>
+           <button
+            className={`px-4 py-2 ${activeTab === 'saved' ?'bg-blue-500 text-white' : 'bg-gray-300 text-black' }`}
+            onClick={() => handleTabClick('saved')}
+           >
+              Saved Posts
+           </button>
+      </div>
+
+      <div className="mt-6 mb-8 w-full">
+          {activeTab === 'posts' ? (
+            <div>
+              {posts.length === 0 ? (
               <p className="text-gray-600">
                 This user has not created any posts yet.
               </p>
             ) : (
               posts.map((post) => (
-
-                <div key={post.$id} className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
+                <div key={post.$id} className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4 flex-1 justify-center">
                 <PostCard
-                  $id={post.$id}
-                  title={post.title}
-                  featuredImage={post.featuredImage}
-                  creator={post.creator}
-                  $createdAt={post.$createdAt}
-                  likes={post.likes}
+                   post={{
+                    $id: post.$id,
+                    title: post.title,
+                    featuredImage: post.featuredImage,
+                    creator: post.creator,
+                    $createdAt: post.$createdAt,
+                    likes: post.likes,
+                    save: [post]
+                  }}
                 />
               </div>
                ) )
             )}
-          </div>
+            </div>
+          ) : (
+            <div>
+              {savedPosts.length > 0 ? (
+                savedPosts.map(savedPost => (
+                  <div key={savedPost.$id} className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4 flex-1 justify-center">
+                  <PostCard
+                    post={savedPost}
+                    onSaveToggle={handleSaveToggle}
+                    isSavedPostView={true}
+                  />
+                </div>
+                 ))
+              ) : (
+                <p className="text-center">No saved posts available.</p>
+              )}
+            </div>
+          )}
+      </div>
 
     </Container>
   );
