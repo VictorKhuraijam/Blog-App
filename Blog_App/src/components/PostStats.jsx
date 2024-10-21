@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import authService from "../appwrite/auth"
 
 
-function PostStats({post, creator}) {
+function PostStats({post, creator, onSaveToggle, isSavedPostView, savedPostId }) {
   const likesList = post.likes?.map((user) => user.$id) || [];
 
   const [likes, setLikes] = useState(likesList);
@@ -11,8 +11,9 @@ function PostStats({post, creator}) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loadingUser, setLoadingUser] = useState(true);
 
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
+
+  //We've wrapped the fetchCurrentUser function in a useCallback hook to optimize performance and prevent unnecessary re-renders.
+  const fetchCurrentUser = useCallback( async () => {
       try {
         const userId = await authService.getCurrentUser();
           if(userId){
@@ -29,9 +30,11 @@ function PostStats({post, creator}) {
       } finally{
         setLoadingUser(false);
       }
-    };
-    fetchCurrentUser();
-  },[]);
+    },[]);
+
+    useEffect(() => {
+      fetchCurrentUser();
+    }, [fetchCurrentUser]);
 
 
   useEffect(() => {
@@ -78,8 +81,11 @@ function PostStats({post, creator}) {
   const handleSavePost = async (e) => {
     e.stopPropagation();
 
+    if (!currentUser) {
+      console.error("No current user found while trying to save post.")
+      return;
+    }
     try {
-      if (currentUser) {
         const savedPostRecord = currentUser.save?.find(
           (record) => record.post.$id === post.$id
         );
@@ -93,16 +99,17 @@ function PostStats({post, creator}) {
           await authService.savePost(currentUser.$id, post.$id);
           setIsSaved(true); // Update the state immediately after saving
         }
+           // Notify the parent component about the save status change
+              // Add this check before calling onSaveToggle
+          if (typeof onSaveToggle === 'function') {
+            console.log(`Calling onSaveToggle for post ${post.$id}, isSaved: ${!isSaved}`);
+            onSaveToggle(isSavedPostView ? savedPostId : post.$id, !isSaved);
+          } else {
+            console.warn('onSaveToggle is not a function', onSaveToggle);
+          }
 
-        // Fetch the current user again to get updated saved posts
-        const userId = await authService.getCurrentUser();
-        if (userId) {
-          const updatedUser = await authService.getUser(userId.$id);
-          setCurrentUser(updatedUser);
-        }
-      } else {
-        console.error("No current user found while trying to save the post.");
-      }
+        await fetchCurrentUser();
+
     } catch (error) {
       console.error("Error handling save post:", error);
     }
@@ -121,7 +128,7 @@ function PostStats({post, creator}) {
           alt="like"
           width={25}
           height={25}
-          onClick={isAuthenticated ? (e) => handleLikePost(e) : undefined}
+          onClick={isAuthenticated ?  handleLikePost : undefined}
           className={`cursor-pointer ${!isAuthenticated ? "opacity-50" : ""}`}
         />
         <p className="samll-medium lg:base-medium">{likes.length}</p>
@@ -133,7 +140,7 @@ function PostStats({post, creator}) {
           alt="like"
           width={30}
           height={30}
-          onClick={isAuthenticated ? (e) => handleSavePost(e) : undefined}
+          onClick={isAuthenticated ?  handleSavePost : undefined}
           className={`cursor-pointer ${!isAuthenticated ? "opacity-50" : ""}`}
         />
         </div>

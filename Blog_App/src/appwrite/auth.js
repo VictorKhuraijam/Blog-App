@@ -170,7 +170,7 @@ export class AuthService {
         }
       }
 
-      async updateUserProfile(id, updatedProfileData) {
+        async updateUserProfile(id, updatedProfileData) {
         try {
             // Assuming you store the profile data in the 'users' collection
             const response = await this.databases.updateDocument(
@@ -186,6 +186,19 @@ export class AuthService {
             throw new Error("Failed to update user profile");
         }
     }
+
+        async GetAllUsers() {
+          try {
+              const result = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteUsersCollectionId
+              );
+
+              return result.documents
+          } catch (error) {
+            console.log("Error fetching all users:", error);
+          }
+        }
 
 
         // Comment collection
@@ -336,6 +349,7 @@ export class AuthService {
               console.error("Error liking post:", error);
             }
           }
+
           // ============================== SAVE POST
           async savePost(userId, postId) {
             try {
@@ -391,6 +405,7 @@ export class AuthService {
 
           async getUserPosts(userId) {
             try {
+              // userId is the appwrite userID and not the document ID
                 const posts = await appwriteService.getPostsByUser(userId);
                 return posts;
             } catch (error) {

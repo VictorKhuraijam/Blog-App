@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Container, PostCard } from '../components';
+import { Container } from '../components';
+import {UserSavedPosts, UserPosts} from '../components/index'
 import appwriteService from '../appwrite/config';
 import authService from '../appwrite/auth';
 import { fetchUserStart, fetchUserSuccess, fetchUserFailure } from '../store/userSlice';
@@ -28,7 +29,7 @@ function Profile() {
 
   const currentUser = useSelector(state => state.auth.userData)
 
-  console.log("userID or Document ID:", id)
+  console.log("Document ID:", id)
   console.log("user details:", user)
 
   const fetchSavedPosts = useCallback(async () => {
@@ -131,14 +132,6 @@ function Profile() {
     }
   };
 
-  const handleSaveToggle = async(postId, isSaved, savedPostDocId) => {
-    if(!isSaved){
-      // Remove the post from SavedPosts using the saved post document ID
-      const newUpdatedPost = prevSavedPosts => prevSavedPosts.filter(post => post.$id !== savedPostDocId)
-      setSavedPosts(newUpdatedPost);
-    }
-  }
-
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -198,7 +191,17 @@ function Profile() {
         }
   };
 
-
+  const onSaveToggle = useCallback((postId, isSaved) => {
+    console.log(`Profile: Save toggled for post ${postId}, isSaved: ${isSaved}`);
+    // Update the saved posts list if necessary
+    if (activeTab === 'saved') {
+      setSavedPosts(prevPosts =>
+        isSaved
+          ? prevPosts.filter(post => post.$id !== postId)
+          : [...prevPosts, { $id: postId }] // You might need to fetch the full post data here
+      );
+    }
+  }, [activeTab]);
 
   const handleTabClick = (tab) => {
     console.log(`Switching to ${tab} tab`); // Debugging statement
@@ -213,25 +216,25 @@ function Profile() {
   return (
     <Container>
       <div className="flex flex-col items-center my-4">
-      <div className="flex flex-col md:flex-row items-center md:items-start justify-between w-full md:w-3/4 lg:w-1/2 gap-8">
-      {/* div1: Profile Image */}
-      <div className="relative ">
-        <img
-          src={previewImage || (user?.imageId ? appwriteService.getProfilePicturePreview(user.imageId) : '/assets/profile-placeholder.svg')}
-          alt="profile"
-          className="h-32 w-32 md:h-40 md:w-40 lg:h-48 lg:w-48 rounded-full"
-        />
-        {isOwnProfile && !isEditing && (
-          <div className="absolute bottom-0 right-0 bg-gray-700 text-white p-2 rounded-full cursor-pointer">
-            <img
-              src="/assets/icons-edit.png"
-              alt="edit icon"
-              width={20}
-              onClick={handleEditToggle}
-            />
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-between w-full md:w-3/4 lg:w-1/2 gap-8">
+         {/* div1: Profile Image */}
+          <div className="relative ">
+          <img
+            src={previewImage || (user?.imageId ? appwriteService.getProfilePicturePreview(user.imageId) : '/assets/profile-placeholder.svg')}
+            alt="profile"
+            className="h-32 w-32 md:h-40 md:w-40 lg:h-48 lg:w-48 rounded-full"
+          />
+          {isOwnProfile && !isEditing && (
+            <div className="absolute bottom-0 right-0 bg-gray-700 text-white p-2 rounded-full cursor-pointer">
+              <img
+                src="/assets/icons-edit.png"
+                alt="edit icon"
+                width={20}
+                onClick={handleEditToggle}
+              />
+            </div>
+          )}
           </div>
-        )}
-      </div>
 
       {/* div2: User Details */}
       <div className="flex-1 mt-4 md:mt-0 ml-4">
@@ -348,43 +351,11 @@ function Profile() {
       <div className="mt-6 mb-8 w-full">
           {activeTab === 'posts' ? (
             <div>
-              {posts.length === 0 ? (
-              <p className="text-gray-600">
-                This user has not created any posts yet.
-              </p>
-            ) : (
-              posts.map((post) => (
-                <div key={post.$id} className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4 flex-1 justify-center">
-                <PostCard
-                   post={{
-                    $id: post.$id,
-                    title: post.title,
-                    featuredImage: post.featuredImage,
-                    creator: post.creator,
-                    $createdAt: post.$createdAt,
-                    likes: post.likes,
-                    save: [post]
-                  }}
-                />
-              </div>
-               ) )
-            )}
+             <UserPosts id={id} onSaveToggle={onSaveToggle} />
             </div>
           ) : (
             <div>
-              {savedPosts.length > 0 ? (
-                savedPosts.map(savedPost => (
-                  <div key={savedPost.$id} className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4 flex-1 justify-center">
-                  <PostCard
-                    post={savedPost}
-                    onSaveToggle={handleSaveToggle}
-                    isSavedPostView={true}
-                  />
-                </div>
-                 ))
-              ) : (
-                <p className="text-center">No saved posts available.</p>
-              )}
+             <UserSavedPosts id={id} onSaveToggle={onSaveToggle} />
             </div>
           )}
       </div>

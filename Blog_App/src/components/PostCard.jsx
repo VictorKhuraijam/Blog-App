@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import authService from '../appwrite/auth'
 import appwriteService from '../appwrite/config'
 import { Link } from 'react-router-dom'
@@ -16,10 +16,10 @@ function PostCard({ post, onSaveToggle, isSavedPostView}) {
 
   useEffect(() => {
     const fetchAuthor = async () => {
-      if (post?.creator) {
-        console.log("Fetching user for ID:", post.creator);
+      if (postData?.creator) {
+        console.log("Fetching user for ID:", postData.creator);
         try {
-          const user = await authService.getUserByDocumentId(post.creator.$id);
+          const user = await authService.getUserByDocumentId(postData.creator.$id);
           console.log("Fetched user:", user);
           if (!user) {
             console.error("User not found");
@@ -32,12 +32,20 @@ function PostCard({ post, onSaveToggle, isSavedPostView}) {
       }
     };
     fetchAuthor();
-  }, [post?.creator]);
+  }, [postData?.creator]);
+
+  const handleSaveToggle = useCallback((postId, isSaved) => {
+    console.log(`PostCard: Save toggled for post ${postId}, isSaved: ${isSaved}`);
+      if (onSaveToggle) {
+        onSaveToggle(isSavedPostView ? post.$id : postId, isSaved);
+      } else {
+        console.warn('onSaveToggle is not defined in PostCard');
+      }
+    }, [onSaveToggle, post, isSavedPostView]);
 
   if(!postData) return null;
 
-  const {$id, title, featuredImage, creator, $createdAt, likes, save} = postData;
-
+  const {$id, title, featuredImage, creator, $createdAt } = postData;
 
   return (
     <div className="w-full bg-gray-100 rounded-lg p-4 transition-shadow hover:shadow-md">
@@ -65,16 +73,16 @@ function PostCard({ post, onSaveToggle, isSavedPostView}) {
              {userId ? ( // Check if the user is authenticated
               <Link to={`/profile/${creator.$id}`}>
                 <img
-                  src={creator?.imageId || "../assets/profile-placeholder.svg"}
+                  src={author?.imageId ? appwriteService.getProfilePicturePreview(author.imageId) : author?.imageUrl }
                   alt="user picture"
-                  className='rounded-full w-12 lg:h12'
+                  className='rounded-full w-10 lg:h10'
                 />
               </Link>
             ) : (
               <img
-                src={creator?.imageUrl || "../assets/profile-placeholder.svg"}
+                src={author?.imageId ? appwriteService.getProfilePicturePreview(author.imageId) : author?.imageUrl }
                 alt="user picture"
-                className='rounded-full w-12 lg:h12'
+                className='rounded-full w-10 h-10 lg:h10'
               />
             )}
             <div className='flex flex-col'>
@@ -90,7 +98,7 @@ function PostCard({ post, onSaveToggle, isSavedPostView}) {
         post={postData}
         creator={creator}
         savedPostId={isSavedPostView ? post.$id : null}
-        onSaveToggle={onSaveToggle}
+        onSaveToggle={handleSaveToggle}
         isSavedPostView={isSavedPostView}
       />
     </div>

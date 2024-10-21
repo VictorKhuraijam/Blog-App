@@ -12,7 +12,8 @@ import Signup from "./Signup"
 import Login from './Login'
 import PostForm from './postForm/PostForm'
 import AuthLayout from './AuthLayout'
-
+import UserPosts from "./UserPosts";
+import UserSavedPosts from "./UserSavedPosts";
 
 export {
   Header,
@@ -29,5 +30,6 @@ export {
   Signup,
   PostForm,
   AuthLayout,
-
+  UserPosts,
+  UserSavedPosts
 }

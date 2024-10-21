@@ -147,42 +147,66 @@ export class Service{
       }
   }
 
-    async getPostsByUser(userId) {
-      try {
-          // Step 1: Fetch the user document by userId (Appwrite's user ID)
-          const userDoc = await this.databases.listDocuments(
-              conf.appwriteDatabaseId,
-              conf.appwriteUsersCollectionId,
-              [Query.equal('userId', userId)] // Query the 'users' collection using the Appwrite user ID
-          );
+        async getPostsByUser(userId) {
+        try {
+            // Step 1: Fetch the user document by userId (Appwrite's user ID)
+            const userDoc = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteUsersCollectionId,
+                [Query.equal('userId', userId)] // Query the 'users' collection using the Appwrite user ID
+            );
 
-          // Ensure the user document exists
-          if (userDoc.documents.length === 0) {
-              console.log("User document not found for userId:", userId);
-              return [];
-          }
+            // Ensure the user document exists
+            if (userDoc.documents.length === 0) {
+                console.log("User document not found for userId:", userId);
+                return [];
+            }
 
-          const userCollectionDocId = userDoc.documents[0].$id; // Get the document ID from the users collection
+            const userCollectionDocId = userDoc.documents[0].$id; // Get the document ID from the users collection
 
-          // Step 2: Query the posts by the user collection document ID (creator)
-          const posts = await this.databases.listDocuments(
-              conf.appwriteDatabaseId,
-              conf.appwritePostCollectionId,
-              [Query.equal('creator', userCollectionDocId)] // Use the correct document ID from users collection
-          );
+            // Step 2: Query the posts by the user collection document ID (creator)
+            const posts = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwritePostCollectionId,
+                [Query.equal('creator', userCollectionDocId)] // Use the correct document ID from users collection
+            );
 
-          // Return the list of posts
-          if (posts.documents.length > 0) {
-              return posts.documents;
-          } else {
-              console.log("No posts found for user:", userCollectionDocId);
-              return [];
-          }
-      } catch (error) {
-          console.log("Appwrite service :: getPostsByUser :: error", error);
-          throw new Error("Failed to fetch posts for the user");
-      }
-    }
+            // Return the list of posts
+            if (posts.documents.length > 0) {
+                return posts.documents;
+            } else {
+                console.log("No posts found for user:",
+                    userCollectionDocId);
+                return [];
+            }
+        } catch (error) {
+                console.log("Appwrite service :: getPostsByUser :: error", error);
+                throw new Error("Failed to fetch posts for the user");
+              }
+        }
+
+
+        async getPostsByDocumentId(documentId) {
+            try {
+                console.log("Fetching posts for user with document ID:", documentId);
+                const posts = await this.databases.listDocuments(
+                    conf.appwriteDatabaseId,
+                    conf.appwritePostCollectionId,
+                    [Query.equal('creator', documentId)]
+                );
+
+            if (posts.documents.length > 0) {
+                console.log(`Found ${posts.documents.length} posts for user with document ID: ${documentId}`);
+                return posts.documents;
+            } else {
+                console.log("No posts found for user with document ID:", documentId);
+                return [];
+               }
+            } catch (error) {
+                console.error("Appwrite service :: getPostsByDocumentId :: error", error);
+                throw new Error("Failed to fetch posts for the user");
+           }
+        }
 
            // Upload profile picture to a different bucket (profile pictures bucket)
            async uploadProfilePicture(file) {
