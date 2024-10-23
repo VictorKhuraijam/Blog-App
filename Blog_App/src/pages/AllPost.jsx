@@ -41,7 +41,9 @@ function AllPost() {
     <div className="w-full py-8">
       <Container>
       <div className="flex flex-wrap">
-          {posts.map((post) => (
+          {posts.slice() // Make a shallow copy of the posts array
+                .sort((a, b) => new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()) // Sort by date
+                .map((post) => (
             <div
                 key={post.$id}
                 className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
@@ -55,5 +57,10 @@ function AllPost() {
     </div>
   )
 }
+
+// added this code so that when onSaveToggle is not passed like on the home page and the all-post page the warning would be suppress. since no functionality issue arrises
+PostCard.defaultProps = {
+  onSaveToggle: () => {}, // Empty function to suppress warning
+};
 
 export default AllPost

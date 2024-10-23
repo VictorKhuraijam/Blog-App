@@ -4,13 +4,11 @@ import appwriteService from '../appwrite/config'
 import { Link } from 'react-router-dom'
 import { timeAgo } from './timeAgo'
 import PostStats from './PostStats';
-import { getCurrentUserData } from '../store/getCurrentUserData'
 
 
-function PostCard({ post, onSaveToggle, isSavedPostView}) {
+function PostCard({ post, onSaveToggle = () => {}, isSavedPostView}) {
 
   const [author, setAuthor] = useState(null);
-  const {userId} = getCurrentUserData();
 
   const postData = isSavedPostView ? post.post : post;
 
@@ -70,27 +68,22 @@ function PostCard({ post, onSaveToggle, isSavedPostView}) {
 
         {author && (
           <div className='flex items-center space-x-4 py-2'>
-             {userId ? ( // Check if the user is authenticated
-              <Link to={`/profile/${creator.$id}`}>
-                <img
-                  src={author?.imageId ? appwriteService.getProfilePicturePreview(author.imageId) : author?.imageUrl }
-                  alt="user picture"
-                  className='rounded-full w-10 lg:h10'
-                />
-              </Link>
-            ) : (
+            {/* Link wrapping the image */}
+            <Link to={`/profile/${creator.$id}`}>
               <img
-                src={author?.imageId ? appwriteService.getProfilePicturePreview(author.imageId) : author?.imageUrl }
+                src={author?.imageId ? appwriteService.getProfilePicturePreview(author.imageId) : author?.imageUrl}
                 alt="user picture"
                 className='rounded-full w-10 h-10 lg:h10'
               />
-            )}
+            </Link>
             <div className='flex flex-col'>
               <p className="text-gray-800 font-semibold">{creator?.username}</p>
               <p className="text-gray-500 text-sm">{timeAgo($createdAt)}</p>
             </div>
           </div>
         )}
+
+
       </div>
 
       {/* PostStats section */}
@@ -104,5 +97,12 @@ function PostCard({ post, onSaveToggle, isSavedPostView}) {
     </div>
   );
 }
+
+// // Added this line since the prop is only passed in some pages or component and not all thereby suppressing the warning
+// PostCard.defaultProps = {
+//   onSaveToggle: () => {}, // Empty function to suppress warning
+// };
+// React now depriciate this kind of code, instead passed as default on to the props
+
 
 export default PostCard;

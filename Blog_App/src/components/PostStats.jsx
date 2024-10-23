@@ -121,8 +121,8 @@ function PostStats({post, creator, onSaveToggle, isSavedPostView, savedPostId })
       <div className="flex gap-2 mr-5">
         <img
           src={`${
-            likes.includes(creator?.userId)
-              ? "/assets/liked.svg"
+            likes.includes(currentUser?.$id)
+              ? "/assets/Liked.png"
               : "/assets/like.svg"
           }`}
           alt="like"
@@ -136,10 +136,10 @@ function PostStats({post, creator, onSaveToggle, isSavedPostView, savedPostId })
 
       <div className="flex gap-2 ">
         <img
-          src={isSaved ? "/assets/saved.svg" : "/assets/save.svg"}
+          src={isSaved ? "/assets/saved.png" : "/assets/save.svg"}
           alt="like"
           width={30}
-          height={30}
+          height={25}
           onClick={isAuthenticated ?  handleSavePost : undefined}
           className={`cursor-pointer ${!isAuthenticated ? "opacity-50" : ""}`}
         />

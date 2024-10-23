@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import appwriteService from "../appwrite/auth.js";
+import appwriteService from "../appwrite/config";
+import authService from "../appwrite/auth";
+import { timeAgo } from "./timeAgo.js";
 import {
     fetchCommentsStart,
     fetchCommentsSuccess,
@@ -23,14 +25,25 @@ export default function Comments({ postId }) {
     const [editedCommentContent, setEditedCommentContent] = useState("");
     const { comments, loading, error } = useSelector(state => state.comments);
     const userData = useSelector(state => state.auth.userData);
+    const [user, setUser] = useState({})
     const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchComments = async () => {
             dispatch(fetchCommentsStart());
             try {
-                const fetchedComments = await appwriteService.getCommentsForPost(postId);
+                const fetchedComments = await authService.getCommentsForPost(postId);
                 dispatch(fetchCommentsSuccess(fetchedComments));
+
+                //Fetch user profile for each unique creator
+                const uniqueCreatorIds = [...new Set(fetchedComments.map(comment => comment.creator.$id))];
+                const profiles = await Promise.all(
+                    uniqueCreatorIds.map(async (creatorId) => {
+                        const user = await authService.getUserByDocumentId(creatorId);
+                        return { [creatorId]: user };
+                    })
+                );
+                setUser(Object.assign({}, ...profiles));
             } catch (error) {
                 dispatch(fetchCommentsFailure(error.message));
             }
@@ -44,7 +57,7 @@ export default function Comments({ postId }) {
 
         dispatch(addCommentStart());
         try {
-            const comment = await appwriteService.addComment(postId, userData.$id, newComment);
+            const comment = await authService.addComment(postId, userData.$id, newComment);
             dispatch(addCommentSuccess(comment));
             setNewComment("");  // Reset the input field
         } catch (error) {
@@ -56,7 +69,7 @@ export default function Comments({ postId }) {
     const handleDelete = async (commentId) => {
         dispatch(deleteCommentStart());
         try {
-            await appwriteService.deleteComment(commentId);
+            await authService.deleteComment(commentId);
             dispatch(deleteCommentSuccess(commentId));
         } catch (error) {
             dispatch(deleteCommentFailure(error.message));
@@ -74,7 +87,7 @@ export default function Comments({ postId }) {
 
         dispatch(editCommentStart());
         try {
-            const updatedComment = await appwriteService.updateComment(commentId, editedCommentContent);
+            const updatedComment = await authService.updateComment(commentId, editedCommentContent);
             dispatch(editCommentSuccess(updatedComment));
 
             // Update the local comments state immediately
@@ -98,10 +111,18 @@ export default function Comments({ postId }) {
 
         if (updatedAt && new Date(updatedAt).getTime() > new Date(createdAt).getTime()) {
             const updatedTime = new Date(updatedAt).toLocaleString();
-            return `Updated at: ${updatedTime}`;
+            return `Updated ${timeAgo(updatedTime)}`;
         }
 
-        return `Posted at: ${createdTime}`;
+        return `Posted ${timeAgo(createdTime)}`;
+    };
+
+    const getUserImageId = (creatorId, comment) => {
+        const profile = user[creatorId];
+        if(profile && profile.imageId){
+            return appwriteService.getProfilePicturePreview(profile.imageId)
+        }
+        return comment.imageUrl
     };
 
 
@@ -115,25 +136,25 @@ export default function Comments({ postId }) {
             <div className="space-y-4">
                 {Array.isArray(comments) && comments.length > 0 ? (
                    comments.map((comment) => (
-                        <div key={comment?.$id} className="p-4 bg-white border border-gray-300 shadow rounded-lg space-y-2">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center">
-                                    <img
-                                        src={comment?.imageUrl || 'assets/profile-placeholder.svg'}
-                                        alt="User Avatar"
-                                        className="h-8 w-8 rounded-full mr-3"
-                                    />
-                                    <div>
+                 <div key={comment?.$id} className="p-4 bg-white border border-gray-300 shadow rounded-lg space-y-2">
+                    <div className="flex items-center justify-between mb-2">
+                       <div className="flex items-center">
+                            <img
+                              src={getUserImageId(comment?.creator.$id, comment)}
+                              alt="User Avatar"
+                            className="h-8 w-8 rounded-full mr-3"
+                            />
+                              <div>
                                         <p className="font-semibold">{comment?.name}</p>
                                         <p className="text-gray-500 text-sm">
                                         {formatDate(comment?.createdAt, comment?.updatedAt)}
 
                                         </p>
-                                    </div>
-                                </div>
-                                {/* Buttons aligned on the top-right */}
-                                {userData?.$id === comment?.creator.$id && (
-                                    <div className="flex space-x-2 ml-auto">
+                              </div>
+                       </div>
+                      {/* Buttons aligned on the top-right */}
+                        {userData?.$id === comment?.creator.$id && (
+                        <div className="flex space-x-2 ml-auto">
                                         <button
                                             onClick={() => handleEditToggle(comment.$id, comment.content)}
                                             className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded"
@@ -146,11 +167,11 @@ export default function Comments({ postId }) {
                                         >
                                             Delete
                                         </button>
-                                    </div>
-                                )}
-                            </div>
+                        </div>
+                         )}
+                    </div>
 
-                            {editingCommentId === comment?.$id ? (
+                        {editingCommentId === comment?.$id ? (
                                 // If editing, show textarea with buttons
                                 <>
                                 <textarea
@@ -175,7 +196,7 @@ export default function Comments({ postId }) {
                                 // Show the comment content normally
                                 <p className="mt-2">{comment?.content}</p>
                             )}
-                        </div>
+                 </div>
                     ))
                 ) : (
                     <p>No comments yet. Be the first to comment!</p>

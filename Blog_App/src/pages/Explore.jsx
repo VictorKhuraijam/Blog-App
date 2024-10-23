@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import UserProfileCard from '../components/UserProfileCard'; // Import the UserProfileCard component
 import authService from '../appwrite/auth';
-import { Container } from '../components/container/Container';
+import { Container } from '../components/index';
 
 function Explore() {
   const [users, setUsers] = useState([]);
@@ -42,12 +42,13 @@ function Explore() {
 
   return (
     <Container>
-      <h1 className="text-xl font-bold mb-4">Explore Users</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+     <div className='mt-10 mb-4'>
+     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {users.map((user) => (
           <UserProfileCard key={user.$id} userDocId={user.$id} />
         ))}
       </div>
+     </div>
     </Container>
   );
 }

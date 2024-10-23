@@ -57,10 +57,12 @@ function UserPosts({id, onSaveToggle}) {
               </p>
             ) : (
               <div className="flex flex-wrap -m-2">
-                {posts.map((post) => (
+                {posts.slice() // Make a shallow copy of the posts array
+                  .sort((a, b) => new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()) // Sort by date
+                .map((post) => (
                   <div
                     key={post.$id}
-                    className="p-2 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 flex justify-center"
+                    className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
                   >
                     <PostCard
                       post={{

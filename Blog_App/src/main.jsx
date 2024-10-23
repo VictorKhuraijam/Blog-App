@@ -8,6 +8,7 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { AuthLayout, Login } from './components/index.js'
 import {Home, AllPost, AddPost, EditPost, Post, Signup, Profile} from './pages/index.js'
+import Explore from './pages/Explore.jsx'
 
 
 const router = createBrowserRouter([
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
     {
       path:'/post/:id',
       element: <Post />
+    },
+    {
+      path: '/explore',
+      element: <Explore />
     }
   ]
  }

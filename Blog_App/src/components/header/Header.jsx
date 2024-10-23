@@ -9,13 +9,12 @@ import { getCurrentUserData } from '../../store/getCurrentUserData'
 function Header() {
   const userData = useSelector((state) => state.auth.userData);
   const status = useSelector((state) => state.auth.status);
-
-
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [profileImageId, setProfileImageId] = useState(userData?.imageUrl || '/assets/profile-placeholder.svg')
 
   console.log("userData:", userData);
   console.log("status:", status);
@@ -27,6 +26,7 @@ function Header() {
       return;
     }
       if(status && !userData ){
+        setLoading(true);
         dispatch(getCurrentUserData())
         .catch((err) => setError(`Failed to load user data: ${err.message}`))
         .finally(() => setLoading(false))
@@ -36,11 +36,27 @@ function Header() {
       console.log(userData)
   },[dispatch, userData, status, loading])
 
+  useEffect(() => {
+    if (userData) {
+      setProfileImageId(
+        userData.imageId
+          ? appwriteService.getProfilePicturePreview(userData.imageId)
+          : userData?.imageUrl || '/assets/profile-placeholder.svg'
+      );
+    }
+  }, [userData]);
+
+
   const navItems = [
+    {
+      name: "Explore",
+      slug: '/explore',
+      active: true,
+    },
     {
       name: 'Home',
       slug: "/",
-      active: true
+      active: true,
     },
     {
       name: "Login",
@@ -52,11 +68,7 @@ function Header() {
       slug: "/signup",
       active: !status,
     },
-    {
-      name: "Profile",
-      slug: status && userData ? `/profile/${userData.$id}` : null,
-      active: status && userData !== null,
-    },
+
     {
       name: "All Posts",
       slug: "/all-posts",
@@ -93,9 +105,13 @@ function Header() {
                 <Link to={`/profile/${userData.$id}`}
                 className='flex-center gap-3'>
                   <img
-                  src={userData?.imageId ? appwriteService.getProfilePicturePreview(userData.imageId) : userData?.imageUrl }
+                  src={profileImageId}
                   alt="profile"
                   className='h-10 w-10 rounded-full'
+                  onError={(e) => {
+                    e.target.src = '/assets/profile-placeholder.svg'
+                    setProfileImageId(userData?.imageUrl || '/assets/profile-placeholder.svg')
+                  }}
                   />
                 </Link>
             </div>

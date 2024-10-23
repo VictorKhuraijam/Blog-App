@@ -53,7 +53,7 @@ export class AuthService {
               return await this.account.createEmailPasswordSession(email, password);
           } catch (error) {
            console.log(error)
-          //  throw new Error("Failed to login. Please check your email and password and try again")
+            throw new Error("Failed to login. Please check your email and password and try again")
             }
           }
 

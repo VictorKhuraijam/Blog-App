@@ -50,8 +50,10 @@ function UserSavedPosts({id, onSaveToggle}) {
       <h2 className="text-2xl font-bold mb-4"> Saved Posts</h2>
        <div className="flex flex-wrap -m-2">
        {savedPosts.length > 0 ? (
-                savedPosts.map(savedPost => (
-                  <div key={savedPost.$id} className="p-2 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 flex justify-center">
+                savedPosts.slice() // Make a shallow copy of the posts array
+                .sort((a, b) => new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()) // Sort by date
+                .map(savedPost => (
+                  <div key={savedPost.$id}  className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
                   <PostCard
                     post={savedPost}
                     onSaveToggle={handleSaveToggle}
