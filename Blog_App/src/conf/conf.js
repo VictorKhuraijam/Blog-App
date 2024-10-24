@@ -9,7 +9,7 @@ const conf = {
   appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),
   appwriteProfileBucketId: String(import.meta.env.VITE_APPWRITE_PROFILE_BUCKET_ID),
   RTE_Api: String(import.meta.env.VITE_RTE_API),
-  AppwriteRedirectUrl: 'http://127.0.0.1:5173/verify-email'
+  AppwriteRedirectUrl: 'blog-app-ashen-two.vercel.app'
 }
 
 
