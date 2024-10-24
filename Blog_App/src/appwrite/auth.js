@@ -27,7 +27,9 @@ export class AuthService {
                     password,
                     name,
                   );
-                    //call another method
+                    // Send verification email
+                    await this.sendVerificationEmail();
+
                     const userId = userAccount.$id;
                     const avatarUrl = this.avatars.getInitials(name)
 
@@ -37,19 +39,134 @@ export class AuthService {
                       email: userAccount.email,
                       username,
                       imageUrl: avatarUrl,
+                      isEmailVerified: false, //field to track verification status
                     })
 
-                    return newUser,this.login({email, password});
-                    
+                    return newUser;
+
              } catch (error) {
                     console.error("Sign up error", error);
                   }
             }
 
-        async login({email, password}){
+      // email Verification Methods
+      async sendVerificationEmail () {
+        try {
+          await this.account.createVerification(
+            conf.AppwriteRedirectUrl + '/verify-email' // frontend verification page URL
+          );
+          return true;
+        } catch (error) {
+          console.error("Error sending verification email:", error);
+          throw error ;
+        }
+      }
 
+      async confirmVerification(userId, secret) {
+        try {
+          await this.account.updateVerification(userId, secret);
+
+          // Update user's verification status in database
+          const userDocId = await this.getUserDocumentId(userId);
+          if(userDocId){
+            await this.databases.updateDocument(
+              conf.appwriteDatabaseId,
+              conf.appwriteUsersCollectionId,
+              userDocId,
+              {
+                isEmailVerified: true
+              }
+            );
+          }
+          return true;
+        } catch (error) {
+          console.error("Error confirming verification:", error);
+          throw error;
+        }
+      }
+
+      async resendVerification(){
+        try {
+          await this.sendVerificationEmail()
+          return true;
+        } catch (error) {
+          console.error("Error resending verification:", error);
+          throw error;
+        }
+      }
+
+      async isEmailVerified(){
+        try {
+          const user = await this.getCurrentUser();
+          return user.emailVerification;
+        } catch (error) {
+          console.error("Error checking verification status:", error);
+          return false;
+        }
+      }
+
+      //Google Authentication Methods
+      async createGoogleAuthSession() {
+        try {
+          return this.account.createOAuth2Session(
+            'google',
+            conf.AppwriteRedirectUrl + '/oauth/callback', //Success URL
+            conf.AppwriteRedirectUrl + '/login', // Failure URL
+            ['profile', 'email']  // Requested scopes
+          );
+
+        } catch (error) {
+          console.error("Google auth session error:", error);
+          throw error;
+        }
+      }
+
+      async handleGoogleCallback(){
+        try {
+          const session = await this.getCurrentSession();
+          if(!session){
+            throw new Error("No active session found");
+          }
+
+          const user = await this.getCurrentUser()
+          if(!user){
+            throw new Error("No user found");
+          }
+
+          //Check if user already exists in database
+          let dbUser = await this.listUserByUserId(user.$id);
+          if(!dbUser){
+            //Create new user in database
+            const avatarUrl = this.avatars.getInitials(user.name);
+            dbUser = await this.saveUserToDB({
+              userId: user.$id,
+              name: user.name,
+              email: user.email,
+              username: user.email.split('@')[0], // Create a default username
+              imageUrl: avatarUrl,
+              isEmailVerified: true, // Google-authenticated users are verified
+              authProvider: 'google'
+            });
+          }
+          return dbUser;
+        } catch (error) {
+          console.error("Google callback error:", error);
+          throw error;
+        }
+      }
+
+      //Enhanced login method to check verification
+       async login({email, password}){
           try {
-              return await this.account.createEmailPasswordSession(email, password);
+              const session = await this.account.createEmailPasswordSession(email, password);
+              const user = await this.getCurrentUser()
+
+              //Check if email is verified
+              if(!user.emailVerification){
+                await this.account.deleteSession('current'); //log out
+                throw new Error("Please verify your email before logging in.");
+              }
+              return session
           } catch (error) {
            console.log(error)
             throw new Error("Failed to login. Please check your email and password and try again")

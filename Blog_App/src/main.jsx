@@ -9,6 +9,8 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { AuthLayout, Login } from './components/index.js'
 import {Home, AllPost, AddPost, EditPost, Post, Signup, Profile} from './pages/index.js'
 import Explore from './pages/Explore.jsx'
+import EmailVerification from './components/EmailVerification.jsx'
+import VerificationPending from './components/VerificationPending.jsx'
 
 
 const router = createBrowserRouter([
@@ -16,6 +18,14 @@ const router = createBrowserRouter([
   path: '/',
   element: <App />,
   children:[
+    {
+      path: '/verify-email',
+      element: <EmailVerification />
+    },
+    {
+      path: '/verification-pending',
+      element: <VerificationPending />
+    },
     {
       path: '/',
       element: <Home />

@@ -1,21 +1,18 @@
 import {useState} from 'react'
 import authService from '../appwrite/auth.js'
 import {Link, useNavigate} from 'react-router-dom'
-import {login} from '../store/authSlice.js'
 import {Button, Input, Logo} from './index.js'
-import {useDispatch} from 'react-redux'
 import {useForm} from 'react-hook-form'
 
 function Signup() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
-  const dispatch = useDispatch()
   const {register, handleSubmit} = useForm()
 
   const create = async(data) => {
     setError("")
     try {
-      
+
         const userData = await authService.createAccount({
           email: data.email,
           password: data.password,
@@ -24,9 +21,11 @@ function Signup() {
         })
 
         if(userData){
-          const userData = await authService.getCurrentUser()
-          if(userData) dispatch(login(userData));
-          navigate("/")
+         // Instead of immediately loggin in and navigating to home,
+         //show a verification required message
+          navigate("/verification-pending", {
+            state: {email: data.email}
+          })
         }
     } catch (error)  {
           setError(error.message);
