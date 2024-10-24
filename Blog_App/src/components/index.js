@@ -13,8 +13,10 @@ import Login from './Login'
 import PostForm from './postForm/PostForm'
 import AuthLayout from './AuthLayout'
 import UserPosts from "./UserPosts";
-import UserSavedPosts from "./UserSavedPosts";
-
+import UserSavedPosts from "./UserSavedPosts"
+import SearchBar from "./SearchBar";
+import PostStats from "./PostStats";
+import { timeAgo } from "./timeAgo";
 export {
   Header,
   Footer,
@@ -31,5 +33,9 @@ export {
   PostForm,
   AuthLayout,
   UserPosts,
-  UserSavedPosts
+  UserSavedPosts,
+  SearchBar,
+  PostStats,
+  timeAgo,
+  
 }

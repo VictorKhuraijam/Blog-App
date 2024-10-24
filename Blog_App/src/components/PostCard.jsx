@@ -46,7 +46,7 @@ function PostCard({ post, onSaveToggle = () => {}, isSavedPostView}) {
   const {$id, title, featuredImage, creator, $createdAt } = postData;
 
   return (
-    <div className="w-full bg-gray-100 rounded-lg p-4 transition-shadow hover:shadow-md">
+    <div className="w-full bg-gray-100 rounded-lg p-4 transition-shadow hover:shadow-xl hover:scale-105">
       {/* Image at the top */}
       <div className="mb-4">
         <Link to={`/post/${$id}`}>

@@ -1,12 +1,13 @@
-import { useEffect } from "react"
-import { Container,  PostCard } from "../components"
+import { useEffect, useState, useCallback } from "react"
+import { Container,  PostCard, SearchBar } from "../components"
 import appwriteService from '../appwrite/config'
 import { useDispatch, useSelector } from "react-redux"
 import { fetchPostsStart, fetchPostsSuccess, fetchPostsFailure } from "../store/postSlice"
 
-function AllPost() {
+function AllPost({onSaveToggle = () => {}}) {
   const dispatch = useDispatch()
   const {posts, loading, error} = useSelector(state => state.posts)
+  const [filteredPosts, setFilteredPosts] = useState([]);
 
 
   // Video 26
@@ -25,7 +26,22 @@ function AllPost() {
     fetchPosts();
   }, [dispatch])
 
+   // Initialize filteredPosts when posts change
+   useEffect(() => {
+    setFilteredPosts(posts);
+  }, [posts]);
 
+  // Memoized search handler
+  const handleSearch = useCallback((searchTerm) => {
+    if(!searchTerm.trim()) {
+      setFilteredPosts(posts);
+      return;
+    }
+    const filtered = posts.filter(post =>
+      post.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredPosts(filtered);
+  }, [posts]);
 
   //Add case for array length 0 i.e. when you dont have any post
 
@@ -33,34 +49,33 @@ function AllPost() {
 
   if(error) return <div>Error: {error} </div>
 
-  if(posts.length === 0) return <div
+  if(filteredPosts.length === 0) return <div
   className="py-11 text-4xl text-black-100 font-sans"
   >No posts available</div>
 
   return (
     <div className="w-full py-8">
       <Container>
-      <div className="flex flex-wrap">
-          {posts.slice() // Make a shallow copy of the posts array
-                .sort((a, b) => new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()) // Sort by date
-                .map((post) => (
-            <div
-                key={post.$id}
-                className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
-            >
-                <PostCard post={post}/>
-            </div>
+        <SearchBar
+            onSearch={handleSearch}
+            placeholder="Search posts by title..."
+          />
+          <div className="flex flex-wrap">
+              {filteredPosts.slice() // Make a shallow copy of the posts array
+                    .sort((a, b) => new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()) // Sort by date
+                    .map((post) => (
+                <div
+                    key={post.$id}
+                    className="p-2 w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
+                >
+                    <PostCard post={post}/>
+                </div>
 
-          ))}
-        </div>
+              ))}
+            </div>
       </Container>
     </div>
   )
 }
-
-// added this code so that when onSaveToggle is not passed like on the home page and the all-post page the warning would be suppress. since no functionality issue arrises
-PostCard.defaultProps = {
-  onSaveToggle: () => {}, // Empty function to suppress warning
-};
 
 export default AllPost

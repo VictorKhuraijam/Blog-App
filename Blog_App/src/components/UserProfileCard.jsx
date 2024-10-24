@@ -33,38 +33,55 @@ function UserProfileCard({ userDocId }) {
   if (!user) return null;
 
   return (
-   <Container>
-    <Link to={`/profile/${userDocId}`} className='block '>
-    <div className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center profile-card">
-      {/* Profile Image */}
-      <div className="relative">
-        <img
-          src={user?.imageId ? appwriteService.getProfilePicturePreview(user.imageId) : user.imageUrl}
-          alt="profile"
-          className="h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 rounded-full object-cover"
-        />
-      </div>
+    <Container>
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 px-4">
+        <Link
+          to={`/profile/${userDocId}`}
+          className="block w-full sm:w-[340px] md:w-[380px] lg:w-[400px]"
+        >
+          <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+            {/* Profile Image Section */}
+            <div className="flex justify-center mb-3 sm:mb-6">
+              <img
+                src={user?.imageId ? appwriteService.getProfilePicturePreview(user.imageId) : user.imageUrl}
+                alt="profile"
+                className="h-20 w-20 sm:h-28 sm:w-28 lg:h-32 lg:w-32 rounded-full object-cover shadow-md"
+                onError={(e) => {
+                  e.target.src = '/assets/profile-placeholder.svg';
+                }}
+              />
+            </div>
 
-      {/* User Details */}
-      <div className="mt-4 text-center">
-        <h2 className="text-lg font-semibold">{user?.name}</h2>
-        <p className="text-sm text-gray-600">@{user?.username}</p>
-        <p className="text-sm text-gray-700 mt-2 bio">{user?.bio || 'No bio available'}</p>
-      </div>
+            {/* User Details Section */}
+            <div className="text-center space-y-2 sm:space-y-3">
+              {/* Name */}
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 line-clamp-1 px-2">
+                {user?.name}
+              </h2>
 
-    {/* {Post count} */}
-        <div className='mt-1 text-center'>
-          {
-            postCount > 0 ? (
-              <p className='text-sm text-gray-700'> Posts: {postCount}</p>
-            ): (
-              <p className='text-sm text-gray-700'>No post yet</p>
-            )
-          }
-        </div>
-    </div>
-    </Link>
-   </Container>
+              {/* Username */}
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600">
+                @{user?.username}
+              </p>
+
+              {/* Bio Section - Wider container for larger screens */}
+              <div className="h-10 sm:h-12 flex items-center justify-center px-3 sm:px-6 lg:px-8">
+                <p className="text-xs sm:text-sm lg:text-base text-gray-700 line-clamp-2 empty:before:content-['No_bio_available'] empty:before:text-gray-500 empty:before:italic max-w-prose">
+                  {user?.bio}
+                </p>
+              </div>
+
+              {/* Posts Count Section */}
+              <div className="pt-2 sm:pt-4 border-t border-gray-200">
+                <p className="text-xs sm:text-sm lg:text-base text-gray-700">
+                  {postCount > 0 ? `Posts: ${postCount}` : 'No posts yet'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+    </Container>
   );
 }
 

@@ -40,8 +40,7 @@ export class AuthService {
                     })
 
                     return newUser,this.login({email, password});
-
-
+                    
              } catch (error) {
                     console.error("Sign up error", error);
                   }

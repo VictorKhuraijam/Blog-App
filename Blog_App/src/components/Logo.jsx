@@ -1,8 +1,15 @@
 
 
-function Logo({width = '100px'}) {
+function Logo() {
   return (
-    <div>Logo</div>
+    <div>
+      <img
+        src="/assets/blogLogo.png"
+        alt="logo"
+        width={60}
+        className="rounded-full"
+      />
+    </div>
   )
 }
 

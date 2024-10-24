@@ -155,6 +155,7 @@ const Profile = () => {
     }
   };
 
+
   const handleDeleteImage = async () => {
     try {
       setIsSubmitting(true);
@@ -211,14 +212,14 @@ const Profile = () => {
 
   return (
     <Container>
-      <div className="flex flex-col items-center my-4">
-        <div className="flex flex-col md:flex-row items-center  md:items-start justify-between w-full md:w-3/4 lg:w-1/2 gap-8">
-          {/* Profile Image */}
-          <div className="relative mt-10">
+      <div className="flex flex-col items-center px-4 sm:px-6 lg:px-8 my-8">
+        <div className="flex flex-col md:flex-row items-start justify-between w-full max-w-4xl gap-6 md:gap-8 lg:gap-12">
+          {/* Profile Image Section */}
+          <div className="relative w-full md:w-auto flex justify-center md:justify-start">
             <img
               src={previewImage || profileImageId}
               alt="profile"
-              className="h-32 w-32 md:h-40 md:w-40 lg:h-48 lg:w-48 rounded-full"
+              className="h-28 w-28 sm:h-32 sm:w-32 md:h-40 md:w-40 lg:h-48 lg:w-48 rounded-full object-cover shadow-lg"
               onError={(e) => {
                 e.target.src = '/assets/profile-placeholder.svg';
                 setProfileImageId(user.imageUrl || '/assets/profile-placeholder.svg');
@@ -226,45 +227,44 @@ const Profile = () => {
             />
             {isOwnProfile && !isEditing && (
               <button
-                className="absolute bottom-0 right-0 bg-gray-700 text-white p-2 rounded-full"
+                className="absolute bottom-0 right-1/2 md:right-0 translate-x-12 md:translate-x-0 bg-gray-700 text-white p-2 rounded-full shadow-md hover:bg-gray-600 transition-colors"
                 onClick={() => {
                   setIsEditing(true);
                   setIsManagingImage(true);
                 }}
               >
-                <img src="/assets/icons-edit.png" alt="edit" width={20} />
+                <img src="/assets/icons-edit.png" alt="edit" className="w-5 h-5" />
               </button>
             )}
           </div>
 
-          {/* User Details */}
-          <div className="flex-1 mt-10 md:mt-10 ml-4 ">
+          {/* User Details Section */}
+          <div className="flex-1 w-full md:w-auto">
             {!isEditing ? (
-              <>
-                <h1 className="text-3xl font-bold">{user?.name}</h1>
-                <p className="text-xl text-gray-600">@{user?.username}</p>
+              <div className="text-center md:text-left space-y-4">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">{user?.name}</h1>
+                <p className="text-lg sm:text-xl text-gray-600">@{user?.username}</p>
                 <div className="mt-4">
-                  <h2 className="font-semibold">Bio</h2>
-                  <p className="text-md p-2 rounded-sm">{user?.bio || 'User has no bio.'}</p>
+                  <h2 className="text-lg text-center mb-2 font-semibold">Bio</h2>
+                  <p className="text-md p-2 rounded-sm bg-gray-200">{user?.bio || 'User has no bio.'}</p>
                 </div>
-              </>
+              </div>
             ) : (
-              <form onSubmit={handleEditSubmit} className="w-full max-w-lg">
-                {/* Form fields for editing */}
-                {/* ... (image management buttons) */}
+              <form onSubmit={handleEditSubmit} className="w-full max-w-2xl mx-auto md:mx-0">
+                {/* Image Management Section */}
                 {isManagingImage && (
-                  <div className="mt-4 mb-4 flex flex-1">
+                  <div className="mt-4 mb-6 flex flex-col sm:flex-row gap-3">
                     {user.imageId ? (
                       <>
                         <button
                           type="button"
-                          className="bg-red-500 text-white py-2 px-4 rounded mr-2"
+                          className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                           onClick={handleDeleteImage}
                           disabled={isSubmitting}
                         >
                           {isSubmitting ? 'Deleting...' : 'Delete Profile Picture'}
                         </button>
-                        <label className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer">
+                        <label className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg cursor-pointer text-center transition-colors">
                           {isSubmitting ? 'Processing...' : 'Replace Profile Picture'}
                           <input
                             type="file"
@@ -276,8 +276,7 @@ const Profile = () => {
                         </label>
                       </>
                     ) : (
-                      <div className='flex justify-center'>
-                        <label className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer">
+                      <label className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg cursor-pointer text-center transition-colors">
                         {isSubmitting ? 'Processing...' : 'Add Profile Picture'}
                         <input
                           type="file"
@@ -286,51 +285,72 @@ const Profile = () => {
                           accept="image/png, image/jpg, image/jpeg, image/gif"
                           disabled={isSubmitting}
                         />
-                       </label>
-                      </div>
+                      </label>
                     )}
                   </div>
                 )}
 
-                <input
-                  type="text"
-                  name="name"
-                  value={updatedUser.name}
-                  onChange={handleInputChange}
-                  placeholder="Name"
-                  className="w-full p-2 border mt-2"
-                />
-                <input
-                  type="text"
-                  name="username"
-                  value={updatedUser.username}
-                  onChange={handleInputChange}
-                  placeholder="Username"
-                  className="w-full p-2 border mt-2"
-                />
-                <textarea
-                  name="bio"
-                  value={updatedUser.bio}
-                  onChange={handleInputChange}
-                  placeholder="Bio"
-                  className="w-full p-2 border mt-2 rounded-md resize-none min-h-[150px]"
-                  rows={6}
-                />
-                <div className="mt-4 flex flex-1">
+                {/* Form Fields */}
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <label htmlFor="name" className="text-sm font-bold text-gray-700 sm:w-24">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      id="name"
+                      value={updatedUser.name}
+                      onChange={handleInputChange}
+                      placeholder="Name"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <label htmlFor="username" className="text-sm font-bold text-gray-700 sm:w-24">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={updatedUser.username}
+                      onChange={handleInputChange}
+                      placeholder="Username"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                    <label htmlFor="bio" className="text-sm font-bold text-gray-700 sm:w-24">
+                      Bio
+                    </label>
+                    <textarea
+                      name="bio"
+                      value={updatedUser.bio}
+                      onChange={handleInputChange}
+                      placeholder="Bio"
+                      className="w-full p-2 border rounded-lg resize-none min-h-[150px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={6}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <button
                     type="submit"
-                    className="flex-1 bg-green-500 text-white py-3 px-6 rounded-md hover:bg-green-600 transition-colors disabled:opacity-50"
+                    className="w-full sm:w-1/2 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg transition-colors disabled:opacity-50"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Saving...' : 'Save Changes'}
                   </button>
                   <button
                     type="button"
-                    className="flex-1 bg-gray-500 text-white py-3 px-6 rounded-md hover:bg-gray-600 transition-colors"
+                    className="w-full sm:w-1/2 bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-colors"
                     onClick={() => {
                       setIsEditing(false);
                       setIsManagingImage(false);
-                       // Reset form to original values
                       setUpdatedUser({
                         name: user.name,
                         username: user.username,
@@ -348,36 +368,46 @@ const Profile = () => {
             )}
           </div>
         </div>
-      </div>
 
         {/* Posts Section */}
-        <div className="mt-8 w-full flex justify-center text-center">
-          <h2 className="text-2xl font-bold">Posts by {user?.name}</h2>
+        <div className="w-full max-w-4xl mt-12">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-8">
+            Posts by {user?.name}
+          </h2>
+
+          {/* Tab Navigation */}
+          <div className="flex justify-center gap-3 mb-8">
+            <button
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'posts'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              onClick={() => setActiveTab('posts')}
+            >
+              User Posts
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'saved'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              onClick={() => setActiveTab('saved')}
+            >
+              Saved Posts
+            </button>
+          </div>
+
+          {/* Posts Display */}
+          <div className="w-full">
+            {activeTab === 'posts' ? (
+              <UserPosts id={id} onSaveToggle={onSaveToggle} />
+            ) : (
+              <UserSavedPosts id={id} onSaveToggle={onSaveToggle} />
+            )}
+          </div>
         </div>
-
-      {/* Tab Navigation */}
-      <div className="flex justify-center mt-8 gap-2">
-        <button
-          className={`px-4 py-2 ${activeTab === 'posts' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} rounded-sm`}
-          onClick={() => setActiveTab('posts')}
-        >
-          User Posts
-        </button>
-        <button
-          className={`px-4 py-2 ${activeTab === 'saved' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} rounded-sm`}
-          onClick={() => setActiveTab('saved')}
-        >
-          Saved Posts
-        </button>
-      </div>
-
-      {/* Posts Display */}
-      <div className="mt-6 mb-8 w-full">
-        {activeTab === 'posts' ? (
-          <UserPosts id={id} onSaveToggle={onSaveToggle} />
-        ) : (
-          <UserSavedPosts id={id} onSaveToggle={onSaveToggle} />
-        )}
       </div>
     </Container>
   );

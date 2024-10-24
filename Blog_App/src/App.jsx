@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import {useDispatch} from "react-redux"
 import './App.css'
@@ -13,7 +14,7 @@ function App() {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-     await dispatch(getCurrentUserData()); // Dispatch your new function to fetch user data
+      dispatch(getCurrentUserData()); // Dispatch your new function to fetch user data
       } catch (error) {
         console.error('Failed to fetch user data:', error);
       } finally {
@@ -26,19 +27,26 @@ function App() {
 
 
 
-  return !loading ? (
+  return (
     <div className='min-h-screen flex flex-wrap content-between bg-gray-400'>
       <div className='w-full block'>
         <Header />
 
         <main>
-           <Outlet />
+           {/* Only show loading state for the main content */}
+          {loading ? (
+            <div className="w-full h-32 flex items-center justify-center">
+              <div className="text-lg text-gray-600">Loading...</div>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
 
         <Footer />
       </div>
     </div>
-  ) : null
+  ) 
 }
 
 export default App

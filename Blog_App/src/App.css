@@ -39,6 +39,7 @@
 }
 
 
+
 .base-medium {
   @apply text-[16px] font-medium leading-[140%];
 }
